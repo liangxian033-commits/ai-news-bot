@@ -37,7 +37,6 @@ async function translateAndSummarize(text) {
         });
         return response.data.choices[0].message.content;
     } catch (error) {
-        // 如果 API 报错，会在这里打印出具体原因
         console.error('❌ DeepSeek 大脑短路:', error.response ? JSON.stringify(error.response.data) : error.message);
         return '翻译失败，请检查 API Key 或重试。';
     }
@@ -53,7 +52,8 @@ async function sendToFeishu(title, content, link) {
             msg_type: "interactive",
             card: {
                 header: {
-                    title: { tag: "plain_text", content: "🤖 贾维斯 AI 深度解析" },
+                    // 【关键修改】这里包含了你设置的飞书安全校验关键词
+                    title: { tag: "plain_text", content: "🤖 汪宇涵臭狗 为您播报 AI 新闻" },
                     template: "blue"
                 },
                 elements: [
@@ -73,11 +73,10 @@ async function sendToFeishu(title, content, link) {
 // 3. 核心流程控制
 // ==========================================
 async function runJavisRobot() {
-    console.log('🌍 贾维斯已苏醒，正在前往 TechCrunch 获取头条...');
+    console.log('🌍 机器人已苏醒，正在前往 TechCrunch 获取头条...');
     try {
-        // 检查有没有配置秘钥
         if (!FEISHU_WEBHOOK || !DEEPSEEK_API_KEY) {
-            throw new Error("找不到秘钥！请确认 GitHub Secrets 里的 FEISHU_WEBHOOK 和 DEEPSEEK_API_KEY 是否设置正确。");
+            throw new Error("找不到秘钥！请确认 GitHub Secrets 设置正确。");
         }
 
         const RSS_URL = 'https://techcrunch.com/category/artificial-intelligence/feed/';
