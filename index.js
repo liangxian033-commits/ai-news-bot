@@ -6,7 +6,7 @@ const parser = new Parser({
     customFields: { item: ['content:encoded'] } // 强行获取 RSS 里的超长正文
 });
 
-// 安全读取保险柜里的钥匙
+// 安全读取 GitHub 保险柜里的钥匙
 const FEISHU_WEBHOOK = process.env.FEISHU_WEBHOOK;
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 
@@ -25,7 +25,7 @@ async function translateAndSummarize(text) {
                 },
                 {
                     role: 'user',
-                    content: text.substring(0, 8000) // 截取前 8000 个字符防止超出限制
+                    content: text.substring(0, 6000) // 截取前 6000 个字符防止超出模型限制
                 }
             ],
             temperature: 0.7
@@ -37,7 +37,8 @@ async function translateAndSummarize(text) {
         });
         return response.data.choices[0].message.content;
     } catch (error) {
-        console.error('❌ DeepSeek 大脑短路:', error.response ? error.response.data : error.message);
+        // 如果 API 报错，会在这里打印出具体原因
+        console.error('❌ DeepSeek 大脑短路:', error.response ? JSON.stringify(error.response.data) : error.message);
         return '翻译失败，请检查 API Key 或重试。';
     }
 }
@@ -74,10 +75,15 @@ async function sendToFeishu(title, content, link) {
 async function runJavisRobot() {
     console.log('🌍 贾维斯已苏醒，正在前往 TechCrunch 获取头条...');
     try {
+        // 检查有没有配置秘钥
+        if (!FEISHU_WEBHOOK || !DEEPSEEK_API_KEY) {
+            throw new Error("找不到秘钥！请确认 GitHub Secrets 里的 FEISHU_WEBHOOK 和 DEEPSEEK_API_KEY 是否设置正确。");
+        }
+
         const RSS_URL = 'https://techcrunch.com/category/artificial-intelligence/feed/';
         const feed = await parser.parseURL(RSS_URL);
 
-        // 为了保证翻译质量和 API 不超时，每天只精译一篇“今日头条”
+        // 每天只精译一篇“今日头条”
         const topArticle = feed.items[0];
         console.log(`📰 锁定今日头条: ${topArticle.title}`);
 
