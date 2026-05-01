@@ -2,9 +2,8 @@ name: Daily AI News Robot
 
 on:
   schedule:
-    # 这里的 cron 是格林威治时间。0 0 代表北京时间早上 8 点
-    - cron: '0 0 * * *'
-  workflow_dispatch: # 允许你手动点击运行测试
+    - cron: '0 0 * * *' # 每天北京时间早上 8 点
+  workflow_dispatch: 
 
 jobs:
   build:
@@ -18,10 +17,12 @@ jobs:
         with:
           node-version: '18'
 
-      - name: 安装依赖包
-        run: npm install
+      - name: 强制安装所需工具包
+        # 这里直接在云端安装剥离网页用的 cheerio，以及原来那两个
+        run: npm install axios rss-parser cheerio
 
-      - name: 运行机器人
+      - name: 运行超级机器人
         env:
-          PUSH_TOKEN: ${{ secrets.PUSH_TOKEN }} # 这里会读取你待会设置的秘密钥匙
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: node index.js
